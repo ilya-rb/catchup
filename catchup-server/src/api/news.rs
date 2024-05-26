@@ -1,0 +1,65 @@
+use actix_web::http::StatusCode;
+use actix_web::{web, HttpResponse, ResponseError};
+use anyhow::Context;
+use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
+use std::fmt::Formatter;
+
+use crate::domain::{Article, NewsSource};
+use crate::error::error_chain_fmt;
+use crate::services::irish_times;
+
+#[derive(Deserialize)]
+pub struct QueryData {
+    source: String,
+}
+
+#[derive(Serialize)]
+pub struct Response {
+    articles: Vec<Article>,
+}
+
+#[derive(thiserror::Error)]
+pub enum NewsError {
+    #[error("{0}")]
+    UnsupportedSource(String),
+    #[error(transparent)]
+    UnexpectedError(#[from] anyhow::Error),
+}
+
+#[tracing::instrument(name = "Get news", skip(query, db))]
+pub async fn get_news(
+    query: web::Query<QueryData>,
+    db: web::Data<PgPool>,
+) -> Result<HttpResponse, NewsError> {
+    let source: NewsSource = match query.source.as_str().try_into() {
+        Ok(value) => value,
+        Err(_) => {
+            let error = format!("{} is not supported", query.source);
+            return Err(NewsError::UnsupportedSource(error));
+        }
+    };
+
+    let articles = match source {
+        NewsSource::IrishTimes => irish_times::api::get_latest_news(&db),
+    }
+    .await
+    .context("Failed to read latest irish times articles")?;
+
+    Ok(HttpResponse::Ok().json(web::Json(Response { articles })))
+}
+
+impl std::fmt::Debug for NewsError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        error_chain_fmt(self, f)
+    }
+}
+
+impl ResponseError for NewsError {
+    fn status_code(&self) -> StatusCode {
+        match self {
+            NewsError::UnsupportedSource(_) => StatusCode::BAD_REQUEST,
+            NewsError::UnexpectedError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+}

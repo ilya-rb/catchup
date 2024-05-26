@@ -1,0 +1,111 @@
+version: 2.1
+
+jobs:
+  build-and-test:
+    docker:
+      - image: cimg/rust:1.73.0
+    environment:
+      RUSTFLAGS: '-D warnings'
+    steps:
+      - checkout
+      - run:
+          name: Version information
+          command: rustc --version; cargo --version; rustup --version
+      - run:
+          name: Calculate dependencies
+          command: cargo generate-lockfile
+      - restore_cache:
+          keys:
+            - v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
+      - run:
+          name: Build targets
+          command: cargo build
+      - save_cache:
+          paths:
+            - /home/circleci/.cargo/registry
+            - target/debug/.fingerprint
+            - target/debug/build
+            - target/debug/deps
+          key: v1-cargo-cache-{{ arch }}-{{ checksum "Cargo.lock" }}
+      - run:
+          name: Run tests
+          command: cargo test
+
+  security:
+    docker:
+      - image: cimg/rust:1.73.0
+    steps:
+      - checkout
+      - run:
+          name: Cache permission
+          command: sudo chown -R $(whoami):$(id -ng) /home/circleci/.cargo/bin/cargo
+      - restore_cache:
+          keys:
+            - v1-cargo-audit-{{ arch }}
+      - run:
+          name: Install audit dependency
+          command: cargo install cargo-audit
+      - save_cache:
+          paths:
+            - /home/circleci/.cargo/bin/cargo
+          key: v1-cargo-audit-{{ arch }}
+      - run:
+          name: Check for known security issues
+          command: cargo audit
+
+  format:
+    docker:
+      - image: cimg/rust:1.73.0
+    steps:
+      - checkout
+      - run:
+          name: Install formatter
+          command: rustup component add rustfmt
+      - run:
+          name: Run formatter
+          command: cargo fmt --check
+
+  lint:
+    docker:
+      - image: cimg/rust:1.73.0
+    steps:
+      - checkout
+      - run:
+          name: Install Clippy
+          command: rustup component add clippy
+      - run:
+          name: Run clippy
+          command: cargo clippy -- -D warnings
+
+  coverage:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Coverage with docker
+          command: docker run --security-opt seccomp=unconfined -v "${PWD}:/volume" xd009642/tarpaulin cargo tarpaulin --ignore-tests
+
+workflows:
+  version: 2
+  build-test:
+    jobs:
+      - build-and-test:
+          filters:
+            tags:
+              only: /.*/
+      - security:
+          filters:
+            tags:
+              only: /.*/
+      - format:
+          filters:
+            tags:
+              only: /.*/
+      - lint:
+          filters:
+            tags:
+              only: /.*/
+      - coverage:
+          filters:
+            tags:
+              only: /.*/
