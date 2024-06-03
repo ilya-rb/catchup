@@ -15,9 +15,10 @@ compose-google-fonts = "1.6.7"
 junit = "4.13.2"
 koin = "3.2.0"
 kotlin = "2.0.0"
-kotlin-coroutines = "1.8.0"
+kotlin-coroutines = "1.8.1"
 ktor = "2.3.11"
 napier = "2.7.1"
+circuit = "0.22.1"
 
 [libraries]
 kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
@@ -25,8 +26,6 @@ kotlin-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
-
-# Common
 napier = { module = "io.github.aakira:napier", version.ref = "napier" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 ktor-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -35,6 +34,7 @@ ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "kto
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-contentNegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+circuit-core = { module = "com.slack.circuit:circuit-foundation", version.ref = "circuit" }
 
 # Android
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
@@ -52,3 +52,4 @@ jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlinParcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
