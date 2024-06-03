@@ -1,4 +1,5 @@
 rootProject.name = "catchup-mobile"
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -29,3 +30,8 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
+include(":catchup-service")
+include(":ui-kit")
+include(":core:logging")
+include(":core:network")
+include(":core:coroutines")
