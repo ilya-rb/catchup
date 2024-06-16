@@ -1,22 +1,9 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-  alias(libs.plugins.kotlinMultiplatform)
-  alias(libs.plugins.androidLibrary)
+  id("com.illiarb.catchup.android.library")
+  id("com.illiarb.catchup.kotlin.multiplatform")
 }
 
 kotlin {
-  androidTarget {
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_11)
-    }
-  }
-  iosX64()
-  iosArm64()
-  iosSimulatorArm64()
-
   sourceSets {
     commonMain.dependencies {
       implementation(libs.kotlin.coroutines.core)
@@ -28,11 +15,5 @@ kotlin {
 }
 
 android {
-  namespace = "com.illiarb.catchup.mobile"
-  compileSdk = libs.versions.android.compileSdk.get().toInt()
-  
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-  }
+  namespace = "com.illiarb.catchup.core.coroutines"
 }

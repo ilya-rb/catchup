@@ -1,24 +1,11 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-  alias(libs.plugins.kotlinMultiplatform)
-  alias(libs.plugins.androidLibrary)
-  alias(libs.plugins.jetbrainsCompose)
-  alias(libs.plugins.compose.compiler)
+  id("com.illiarb.catchup.android.library")
+  id("com.illiarb.catchup.kotlin.multiplatform")
+  id("com.illiarb.catchup.kotlin.inject")
+  id("com.illiarb.catchup.compose")
 }
 
 kotlin {
-  androidTarget {
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_11)
-    }
-  }
-  iosX64()
-  iosArm64()
-  iosSimulatorArm64()
-
   sourceSets {
     commonMain.dependencies {
       implementation(compose.runtime)
@@ -27,18 +14,19 @@ kotlin {
       implementation(compose.ui)
       implementation(compose.components.resources)
       implementation(compose.components.uiToolingPreview)
+
+      implementation(libs.coil.core)
+      implementation(libs.coil.network)
+      implementation(libs.coil.compose)
+
+      implementation(projects.core.logging)
+      implementation(projects.core.appInfo)
     }
   }
 }
 
 android {
-  namespace = "com.illiarb.catchup.mobile"
-  compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-  }
+  namespace = "com.illiarb.catchup.uikit"
 
   sourceSets["main"].resources.srcDirs("src/commonMain/composeResources")
 

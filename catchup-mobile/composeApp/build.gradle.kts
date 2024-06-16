@@ -1,25 +1,12 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-
 plugins {
-  alias(libs.plugins.kotlinMultiplatform)
-  alias(libs.plugins.androidApplication)
-  alias(libs.plugins.jetbrainsCompose)
-  alias(libs.plugins.compose.compiler)
-  alias(libs.plugins.kotlinParcelize)
+  id("com.illiarb.catchup.android.application")
+  id("com.illiarb.catchup.kotlin.multiplatform")
+  id("com.illiarb.catchup.kotlin.inject")
+  id("com.illiarb.catchup.compose")
 }
 
 kotlin {
-  androidTarget {
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_11)
-    }
-  }
-
   listOf(
-    iosX64(),
     iosArm64(),
     iosSimulatorArm64()
   ).forEach { iosTarget ->
@@ -50,58 +37,40 @@ kotlin {
       implementation(projects.core.network)
       implementation(projects.uiKit)
       implementation(projects.catchupService)
-    }
-  }
-
-  // https://issuetracker.google.com/issues/315775835
-  targets.configureEach {
-    if (platformType == KotlinPlatformType.androidJvm) {
-      compilations.configureEach {
-        compileTaskProvider.configure {
-          compilerOptions {
-            freeCompilerArgs.addAll(
-              "-P",
-              "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=com.illiarb.catchup.mobile.parcel.CommonParcelize",
-            )
-          }
-        }
-      }
+      implementation(projects.features.home)
     }
   }
 }
 
 android {
-  namespace = "com.illiarb.catchup.mobile"
-  compileSdk = libs.versions.android.compileSdk.get().toInt()
+  namespace = "com.illiarb.catchup"
 
   sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
   sourceSets["main"].res.srcDirs("src/androidMain/res")
   sourceSets["main"].resources.srcDirs("src/commonMain/resources")
 
   defaultConfig {
-    applicationId = "com.illiarb.catchup.mobile"
-    minSdk = libs.versions.android.minSdk.get().toInt()
-    targetSdk = libs.versions.android.targetSdk.get().toInt()
+    applicationId = "com.illiarb.catchup"
     versionCode = 1
     versionName = "1.0"
   }
+
   packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
   }
+
   buildTypes {
     getByName("release") {
       isMinifyEnabled = false
     }
   }
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-  }
+
   buildFeatures {
     compose = true
   }
+
   dependencies {
     debugImplementation(compose.uiTooling)
   }
