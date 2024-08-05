@@ -5,6 +5,7 @@ CREATE TABLE articles
     link        TEXT        NOT NULL,
     title       TEXT        NOT NULL,
     description TEXT,
+    tags        TEXT[],
     source      TEXT        NOT NULL,
     created_at  timestamptz NOT NULL,
 

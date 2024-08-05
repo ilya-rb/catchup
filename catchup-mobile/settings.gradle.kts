@@ -40,5 +40,6 @@ include(
   ":core:app-info",
   ":core:arch",
   "features:home",
-  ":ui-kit",
+  ":ui-kit:core",
+  ":ui-kit:image-loader",
 )

@@ -15,9 +15,9 @@ actual fun createKtorClient(config: NetworkConfig): HttpClient {
     engine {
       config {
         retryOnConnectionFailure(true)
-        connectTimeout(config.connectTimeoutSeconds, TimeUnit.SECONDS)
-        readTimeout(config.readTimeoutSeconds, TimeUnit.SECONDS)
-        writeTimeout(config.writeTimeoutSeconds, TimeUnit.SECONDS)
+        connectTimeout(config.timeouts.connect, TimeUnit.SECONDS)
+        readTimeout(config.timeouts.read, TimeUnit.SECONDS)
+        writeTimeout(config.timeouts.write, TimeUnit.SECONDS)
       }
     }
 
@@ -28,7 +28,7 @@ actual fun createKtorClient(config: NetworkConfig): HttpClient {
     }
 
     install(Logging) {
-      level = LogLevel.HEADERS
+      level = LogLevel.ALL
       logger = object : KtorLogger {
         override fun log(message: String) {
           Logger.v(tag = "AndroidHttpClient") { message }

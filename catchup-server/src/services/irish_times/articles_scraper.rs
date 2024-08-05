@@ -9,17 +9,17 @@ use crate::domain::{Article, NewsSource, uuid_factory};
 pub async fn scrape_latest_articles(
     http_client: &Client,
     url: String,
+    tag: String,
 ) -> Result<Vec<Article>, Box<dyn Error>> {
     let response = http_client.get(url).send().await?.error_for_status()?;
     let body = response.text().await?;
     let document = Html::parse_document(&body);
-    let articles = parse_articles(&document)?;
+    let articles = parse_articles(&document, tag)?;
 
     Ok(articles)
 }
 
-#[tracing::instrument("Parse irish times articles")]
-fn parse_articles(document: &Html) -> Result<Vec<Article>, Box<dyn Error>> {
+fn parse_articles(document: &Html, tag: String) -> Result<Vec<Article>, Box<dyn Error>> {
     let selector = Selector::parse("article")?;
     let articles = document
         .select(&selector)
@@ -33,6 +33,7 @@ fn parse_articles(document: &Html) -> Result<Vec<Article>, Box<dyn Error>> {
                 link,
                 title,
                 description,
+                tags: Some(vec![tag.clone()])
             }
         })
         .collect::<Vec<Article>>();
@@ -84,6 +85,7 @@ mod tests {
             description: Some(String::from("Tech review: Aeno Premium Eco Smart Heater")),
             link: String::from("/technology/consumer-tech/review/2024/05/02/smart-heater-gives-greater-control-over-comfort-and-cost/"),
             source: NewsSource::IrishTimes,
+            tags: Some(vec![String::from("Technology")]),
         }
     )]
     #[case(
@@ -94,10 +96,12 @@ mod tests {
             description: None,
             link: String::from("/technology/consumer-tech/review/2024/05/02/smart-heater-gives-greater-control-over-comfort-and-cost/"),
             source: NewsSource::IrishTimes,
+            tags: Some(vec![String::from("Technology")]),
         }
     )]
     fn parse_article_correctly(#[case] html: String, #[case] expected: Article) {
-        let actual = parse_articles(&Html::parse_fragment(&html)).unwrap();
+        let tag = String::from("Technology");
+        let actual = parse_articles(&Html::parse_fragment(&html), tag).unwrap();
 
         assert_eq!(actual, vec![expected]);
     }

@@ -1,13 +1,13 @@
+use crate::domain::{Article, NewsSource};
+use crate::error::error_chain_fmt;
+use crate::services::{dou, hacker_news, irish_times};
 use actix_web::http::StatusCode;
 use actix_web::{web, HttpResponse, ResponseError};
 use anyhow::Context;
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::fmt::Formatter;
-
-use crate::domain::{Article, NewsSource};
-use crate::error::error_chain_fmt;
-use crate::services::irish_times;
 
 #[derive(Deserialize)]
 pub struct QueryData {
@@ -31,6 +31,7 @@ pub enum NewsError {
 pub async fn get_news(
     query: web::Query<QueryData>,
     db: web::Data<PgPool>,
+    http_client: web::Data<Client>,
 ) -> Result<HttpResponse, NewsError> {
     let source: NewsSource = match query.source.as_str().try_into() {
         Ok(value) => value,
@@ -41,9 +42,10 @@ pub async fn get_news(
     };
 
     let articles = match source {
-        NewsSource::IrishTimes => irish_times::api::get_latest_news(&db),
+        NewsSource::IrishTimes => irish_times::api::get_latest_news(&db).await,
+        NewsSource::HackerNews => hacker_news::api::get_latest_news(&http_client).await,
+        NewsSource::Dou => dou::api::get_latest_news(&http_client).await,
     }
-    .await
     .context("Failed to read latest irish times articles")?;
 
     Ok(HttpResponse::Ok().json(web::Json(Response { articles })))

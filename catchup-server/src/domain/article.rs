@@ -8,6 +8,7 @@ pub struct Article {
     pub id: Uuid,
     pub link: String,
     pub title: String,
+    pub tags: Option<Vec<String>>,
     pub description: Option<String>,
     pub source: NewsSource,
 }

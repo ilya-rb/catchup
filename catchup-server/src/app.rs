@@ -43,6 +43,8 @@ impl App {
                 .wrap(TracingLogger::default())
                 .route("/healthcheck", web::get().to(api::health_check))
                 .route("/news", web::get().to(api::get_news))
+                .route("/scraper", web::get().to(api::run_scraper))
+                .route("/supported_sources", web::get().to(api::supported_sources))
                 .app_data(db_pool.clone())
                 .app_data(http_client.clone())
         })

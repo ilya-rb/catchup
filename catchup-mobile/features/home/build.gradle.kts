@@ -1,6 +1,7 @@
 plugins {
   id("com.illiarb.catchup.android.library")
   id("com.illiarb.catchup.kotlin.multiplatform")
+  id("com.illiarb.catchup.kotlin.inject")
   id("com.illiarb.catchup.compose")
   
   alias(libs.plugins.kotlinParcelize)
@@ -18,8 +19,11 @@ kotlin {
       
       implementation(libs.circuit.core)
       
-      implementation(projects.uiKit)
+      implementation(projects.uiKit.core)
+      implementation(projects.uiKit.imageLoader)
       implementation(projects.core.arch)
+      implementation(projects.core.coroutines)
+      implementation(projects.core.logging)
       implementation(projects.catchupService)
     }
   }

@@ -5,12 +5,18 @@ import com.illiarb.catchup.service.domain.NewsSource
 import com.illiarb.catchup.service.network.dto.ArticleDto
 import com.illiarb.catchup.service.network.dto.ArticlesResponse
 import com.illiarb.catchup.core.network.HttpClient
+import com.illiarb.catchup.service.network.dto.SupportedSourcesResponse
 import io.ktor.client.call.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import me.tatarka.inject.annotations.Inject
 
 interface CatchupService {
 
-  suspend fun getLatestNewsFrom(source: NewsSource): Result<List<Article>>
+  fun collectLatestNewsFrom(source: NewsSource): Flow<List<Article>>
+
+  fun collectAvailableSources(): Flow<Set<NewsSource>>
 }
 
 @Inject
@@ -18,20 +24,24 @@ internal class CatchupServiceRepository(
   private val httpClient: HttpClient,
 ) : CatchupService {
 
-  override suspend fun getLatestNewsFrom(source: NewsSource): Result<List<Article>> {
-    return httpClient.get(
+  override fun collectLatestNewsFrom(source: NewsSource): Flow<List<Article>> = flow {
+    val articles = httpClient.get(
       path = "news",
-      parameters = mapOf("news_type" to source.asRequestKey())
+      parameters = mapOf("source" to source.key)
     ).map {
       val response = it.body<ArticlesResponse>()
       response.articles.map(ArticleDto::asArticle)
     }
+    emit(articles.getOrElse { emptyList() })
+  }.catch {
+    emit(emptyList())
   }
 
-  private fun NewsSource.asRequestKey(): String {
-    return when (this) {
-      NewsSource.IrishTimes -> "irishtimes"
-      NewsSource.Unknown -> throw IllegalArgumentException("Can't request data for unknown source")
+  override fun collectAvailableSources(): Flow<Set<NewsSource>> = flow {
+    val sources = httpClient.get(path = "supported_sources").map {
+      val response = it.body<SupportedSourcesResponse>()
+      response.asNewsSources()
     }
+    emit(sources.getOrThrow())
   }
 }

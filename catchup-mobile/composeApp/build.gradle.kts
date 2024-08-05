@@ -31,13 +31,20 @@ kotlin {
       implementation(compose.components.uiToolingPreview)
 
       implementation(libs.circuit.core)
+      implementation(libs.ktor.core)
+      implementation(libs.napier)
+      implementation(libs.coil.core)
+      implementation(libs.coil.compose)
 
+      implementation(projects.catchupService)
+      implementation(projects.core.appInfo)
+      implementation(projects.core.arch)
       implementation(projects.core.coroutines)
       implementation(projects.core.logging)
       implementation(projects.core.network)
-      implementation(projects.uiKit)
-      implementation(projects.catchupService)
       implementation(projects.features.home)
+      implementation(projects.uiKit.core)
+      implementation(projects.uiKit.imageLoader)
     }
   }
 }

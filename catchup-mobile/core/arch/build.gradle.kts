@@ -7,3 +7,11 @@ android {
   namespace = "com.illiarb.catchup.core.arch"
 }
 
+kotlin {
+  sourceSets {
+    commonMain.dependencies {
+      implementation(libs.circuit.core)
+    }
+  }
+}
+

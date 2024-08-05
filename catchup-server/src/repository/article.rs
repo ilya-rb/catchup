@@ -4,15 +4,17 @@ use sqlx::PgPool;
 use crate::domain::Article;
 use crate::domain::NewsSource;
 
+use anyhow::Result;
+
 #[tracing::instrument(name = "Read articles from DB", skip(db, news_source))]
 pub async fn get_by_source(
     db: &PgPool,
     news_source: NewsSource,
-) -> Result<Vec<Article>, sqlx::Error> {
+) -> Result<Vec<Article>> {
     let source: String = news_source.clone().into();
     let records = sqlx::query!(
         r#"
-        SELECT id, link, title, description
+        SELECT id, link, title, description, tags
         FROM articles
         WHERE source = $1"#,
         source,
@@ -27,6 +29,7 @@ pub async fn get_by_source(
             link: row.link,
             title: row.title,
             description: row.description,
+            tags: row.tags,
             source: news_source.clone(),
         })
         .collect();
@@ -41,14 +44,15 @@ pub async fn save(db: &PgPool, articles: Vec<Article>) -> Result<(), sqlx::Error
     for article in articles {
         sqlx::query!(
             r#"
-            INSERT INTO articles (id, source, title, link, description, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO articles (id, source, title, link, description, tags, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             "#,
             article.id,
             Into::<String>::into(article.source),
             article.title,
             article.link,
             article.description,
+            article.tags.as_deref(),
             Utc::now(),
         )
         .execute(&mut *transaction)
